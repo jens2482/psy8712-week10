@@ -121,7 +121,7 @@ rf_test_results <- str_replace(formatC(p_rf_results, format = "f", digits = 2), 
 xgb_train_results <- str_replace(formatC(max(model_xgb$results$Rsquared, na.rm = TRUE), format = "f", digits = 2), "^0", "") #2 decimal places and no leading zero; used max r2
 xgb_test_results <- str_replace(formatC(p_xgb_results, format = "f", digits = 2), "^0", "") #2 decimal places and no leading zero
 
-table1_tbl <- tibble(
+table1_tbl <- tibble( #pull all reformatted numbers into a tibble)
   algo = c("OLS Regression", "Elastic Net", "Random Forest", "eXtreme Gradient Boosting"),
   cv_rsq = c(lm_train_results, enet_train_results, rf_train_results, xgb_train_results),
   ho_rsq = c(lm_test_results, enet_test_results, rf_test_results, xgb_test_results)
