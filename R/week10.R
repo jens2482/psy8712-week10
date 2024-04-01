@@ -40,7 +40,7 @@ model_lm <- train(
   `work hours` ~ ., #fit model with outcome of work hours with all other variables as predictors. I feel like whenver I do loops, I mess something up. So for simplicity's sake (at least simplicity for me), I copied and pasted my code for each model. I know this is not best-practice.
   train_gss_tbl, #fit model to training set
   method = "lm", # OLS regression
-  preProcess = c("medianImpute", "nzv"), #impute median scores and eliminate near zero values #the model for elastic net was failing and based on the data camp lessons, it appears it might be due to variables with zero sd. I figured all the models needed to be trained on the same data so I eliminated them for all models in pre-processing.
+  preProcess = c("medianImpute", "nzv"), #impute median scores and eliminate near zero values - the model for elastic net was failing and based on the data camp lessons, it appears it might be due to variables with near zero variance. I figured all the models needed to be trained on the same data so I eliminated them for all models in pre-processing.
   na.action = na.pass, #don't stop at na values
   trControl = myControl, #see myControl settings above
   tuneGrid = expand.grid( #only hyperparameter for lm is intercept
@@ -112,13 +112,13 @@ p_xgb_results <- cor(p_xgb, as.data.frame(test_gss_tbl)$`work hours`)^2
 
 
 # Publication
-lm_train_results <- str_replace(formatC(model_lm$results$Rsquared[1], format = "f", digits = 2), "^0", "") #2 decimal places and no leading zero; both r2s listed were the same, so I just extracted the first one
+lm_train_results <- str_replace(formatC(max(model_lm$results$Rsquared, na.rm = TRUE), format = "f", digits = 2), "^0", "") #2 decimal places and no leading zero; used max r2
 lm_test_results <- str_replace(formatC(p_lm_results, format = "f", digits = 2), "^0", "") #2 decimal places and no leading zero
-enet_train_results <- str_replace(formatC(model_enet$results$Rsquared[20], format = "f", digits = 2), "^0", "") #2 decimal places and no leading zero; extracted final r2
+enet_train_results <- str_replace(formatC(max(model_enet$results$Rsquared, na.rm = TRUE), format = "f", digits = 2), "^0", "") #2 decimal places and no leading zero; used max r2
 enet_test_results <- str_replace(formatC(p_enet_results, format = "f", digits = 2), "^0", "") #2 decimal places and no leading zero
-rf_train_results <- str_replace(formatC(model_rf$results$Rsquared[72], format = "f", digits = 2), "^0", "") #2 decimal places and no leading zero; extracted final r2
+rf_train_results <- str_replace(formatC(max(model_rf$results$Rsquared, na.rm = TRUE), format = "f", digits = 2), "^0", "") #2 decimal places and no leading zero; used max r2
 rf_test_results <- str_replace(formatC(p_rf_results, format = "f", digits = 2), "^0", "") #2 decimal places and no leading zero
-xgb_train_results <- str_replace(formatC(model_xgb$results$Rsquared[108], format = "f", digits = 2), "^0", "") #2 decimal places and no leading zero; extracted final r2
+xgb_train_results <- str_replace(formatC(max(model_xgb$results$Rsquared, na.rm = TRUE), format = "f", digits = 2), "^0", "") #2 decimal places and no leading zero; used max r2
 xgb_test_results <- str_replace(formatC(p_xgb_results, format = "f", digits = 2), "^0", "") #2 decimal places and no leading zero
 
 table1_tbl <- tibble(
@@ -128,7 +128,7 @@ table1_tbl <- tibble(
 )
 
 # 1. How did your results change between models? Why do you think this happened, specifically?
-#    Generally my results improved with each model, though my random forest model actually out-performed the eXtreme Gradient Boosting model on both the CV and holdout sets.
+#    Generally my results improved with each model, though my random forest model actually out-performed the eXtreme Gradient Boosting model on both the CV and holdout sets. From watching the outputs, it appeared that each model got more and more complex which resulted in it taking them more time to run, but also appears to have led to better results.
 # 2. How did you results change between k-fold CV and holdout CV? Why do you think this happened, specifically?
 #    For all models except for xgb, the training set's r-squared is higher than the holdout set's r-squared. This would be the pattern that would be expected because through tuning and training, the cross-validated set should be better explained by the data. On the contrary, since the model has never seen the holdout data, this would result in a lower r-squared because it hasn't been trained on that data. I am not sure why for xgb the r-squared is higher for the holdout versus the training set. This could be an error on my part or could just mean this algorithm is good at not overfitting.
 # 3. Among the four models, which would you choose for a real-life prediction problem, and why? Are there tradeoffs? Write up to a paragraph.
